@@ -1,0 +1,5 @@
+# 設計
+
+現アプリはブラウザからWebHIDとFirebaseを使い、サーバーAPIを持たない。Vinextのoutput: exportを使ってdist/clientに静的HTMLとアセットを生成し、Firebase Hostingへ配信する。認証とFirestoreは既存設定を再利用。ハッシュ付きアセットは長期キャッシュ、HTMLは再検証する。
+
+公開前に静的ビルドとHostingエミュレータの配信を確認し、公開後に実URLでログインと既存保存版の読取を確認。実機への書込みは検証対象外。

@@ -1,0 +1,6 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    { "collectionGroup": "versions", "fieldPath": "configJson", "indexes": [] }
+  ]
+}

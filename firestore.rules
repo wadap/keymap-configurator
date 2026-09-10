@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/versions/{versionId} {
+      function owner() { return request.auth != null && request.auth.uid == uid; }
+      function valid() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['schemaVersion', 'name', 'kind', 'createdAt', 'deviceId', 'configJson', 'savedAt'])
+          && data.keys().hasOnly(['schemaVersion', 'name', 'kind', 'createdAt', 'deviceId', 'configJson', 'savedAt'])
+          && versionId.matches('^[A-Za-z0-9_-]{1,80}$')
+          && data.schemaVersion == 1
+          && data.name is string && data.name.size() > 0 && data.name.size() <= 80
+          && data.kind in ['manual', 'automatic']
+          && data.createdAt is string && data.createdAt.size() >= 20 && data.createdAt.size() <= 30
+          && data.deviceId is string && data.deviceId.size() > 0 && data.deviceId.size() <= 200
+          && data.configJson is string && data.configJson.size() > 0 && data.configJson.size() <= 400000
+          && data.savedAt == request.time;
+      }
+      allow read: if owner();
+      allow create: if owner() && valid();
+      allow update, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
