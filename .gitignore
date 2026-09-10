@@ -43,3 +43,5 @@ ui-debug.log*
 .firebase/
 /.openai/
 /firebase.auth.local.json
+/hosting-artifact/
+gha-creds-*.json
