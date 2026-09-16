@@ -86,6 +86,19 @@ Hostingは `dist/client` だけを配信し、Firestoreルールやソース、�
 
 通信層はHIDの32byteレポートを直列化します。書込前の保存失敗、古い設定、機器ID不一致、書込後検証失敗、切断・タイムアウト・Undoの競合をテストします。OSのHIDダイアログや物理入力は自動テストで代替できません。
 
+## ブランチ運用と自動公開
+
+- `develop`: 日常の開発先・既定ブランチ。機能ごとのブランチはここから作り、PRもここへ向けます。
+- `main`: 本番公開用。`develop → main` のPRをマージするとFirebase Hostingへ自動公開します。
+- 両ブランチへのpushとPRで、型・lint・format・Firestoreルールを含む全テスト・静的ビルドを実行します。`develop`とPRの検証では本番公開しません。
+- `main`への変更はPRと`Verify`チェック成功を必須にします。個人開発でもマージできるよう、他者のレビュー承認は必須にしません。
+- 公開ジョブは検証で作った成果物をそのまま使用します。古いmainの実行を再実行しても、最新mainと一致しない場合は公開をスキップします。
+- mainへのマージ後は、そのmainをdevelopへ取り込んで両ブランチを同期します。
+
+設定は [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。GitHubの`production`環境はmainのみを許可します。Google CloudのWorkload Identity Federationでこのリポジトリのmainへのpush・指定ワークフローだけを認証し、Hosting専用サービスアカウントを使用します。長期のサービスアカウント秘密鍵は作成しません。GitHub Actions変数`FIREBASE_WORKLOAD_IDENTITY_PROVIDER`と`FIREBASE_DEPLOY_SERVICE_ACCOUNT`は公開識別子です。
+
+自動公開の対象はHostingです。Firestoreルール・索引・Google認証の反映は、上記の管理者用コマンドで別途行います。
+
 ## 参照
 
 独自TypeScriptクライアントの通信形式は[Vial公式の通信実装](https://github.com/vial-kb/vial-gui/blob/main/src/main/python/protocol/keyboard_comm.py)と[コマンド定義](https://github.com/vial-kb/vial-gui/blob/main/src/main/python/protocol/constants.py)を照合。32byte定義ブロックはlittle-endian、キーマップはbig-endian、読取bufferは最大28byteです。KLEラベル位置は[公式シリアライザ](https://github.com/vial-kb/vial-gui/blob/main/src/main/python/kle_serial.py)で確認しています。
